@@ -1,3 +1,0 @@
-mkfifo /tmp/fifo
-nc -l -p 5002 < /tmp/fifo | nc -u localhost 5001 > /tmp/fifo
-

@@ -1,7 +1,0 @@
-name: tcp
-description: Evaluated if a TCP connection can be opened between two devices
-provides:
-  - tcp_(in|out)@Local:([\d]*)
-requires:
-  # has no requirements
-executable: eval_tcp.rb

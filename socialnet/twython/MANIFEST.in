@@ -1,3 +1,0 @@
-include LICENSE README.markdown README.txt
-recursive-include examples *
-recursive-exclude examples *.pyc

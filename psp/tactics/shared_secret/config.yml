@@ -1,7 +1,0 @@
-name: shared_secret
-description: Provides shared secrets within a signpost domain
-provides:
-  - shared_secret-([[:graph:]]*)@Local
-requires:
-  - local_signpost_domain@Local
-executable: secrecy.rb

@@ -1,5 +1,0 @@
-name: name_server
-description: Checks if a given domain is a name server
-provides:
-  - is_nameserver@([[:graph:]]*)
-executable: ns.rb
