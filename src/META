@@ -1,0 +1,33 @@
+# OASIS_START
+# DO NOT EDIT (digest: c3cf70ee26c63749aa298345260e52c8)
+version = "0.0.1"
+description = "personal namespace system"
+requires = "dnscurve.lwt"
+archive(byte) = "signpost.cma"
+archive(byte, plugin) = "signpost.cma"
+archive(native) = "signpost.cmxa"
+archive(native, plugin) = "signpost.cmxs"
+exists_if = "signpost.cma"
+package "base" (
+ version = "0.0.1"
+ description = "personal namespace system"
+ requires = "lwt.unix sodium dns.lwt dnscurve.lwt signpost"
+ archive(byte) = "base.cma"
+ archive(byte, plugin) = "base.cma"
+ archive(native) = "base.cmxa"
+ archive(native, plugin) = "base.cmxs"
+ exists_if = "base.cma"
+)
+
+package "ace" (
+ version = "0.0.1"
+ description = "personal namespace system"
+ requires = "lwt.unix sodium dns dnscurve signpost"
+ archive(byte) = "ace.cma"
+ archive(byte, plugin) = "ace.cma"
+ archive(native) = "ace.cmxa"
+ archive(native, plugin) = "ace.cmxs"
+ exists_if = "ace.cma"
+)
+# OASIS_STOP
+
