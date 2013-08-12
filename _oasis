@@ -1,0 +1,59 @@
+OASISFormat: 0.3
+Name:        signpost
+Version:     0.0.1
+Synopsis:    personal namespace system
+Authors:     David Sheets
+License:     ISC
+Plugins:     META (0.3), DevFiles (0.3)
+BuildTools:  ocamlbuild
+
+Library signpost
+  Path: src
+  Modules: Control_protocol
+  InternalModules: Base16, Version
+  BuildDepends: dnscurve.lwt
+  Findlibname: signpost
+  NativeOpt: -w @f@p@u
+  ByteOpt:   -w @f@p@u
+
+Library ace
+  Path: src/ace
+  Modules: Aced
+  BuildDepends: lwt.unix, sodium, dns, dnscurve, signpost
+  Findlibname: ace
+  FindlibParent: signpost
+  NativeOpt: -w @f@p@u
+  ByteOpt:   -w @f@p@u
+
+Library base
+  Path: src/base
+  Modules: Based
+  BuildDepends: lwt.unix, sodium, dns.lwt, dnscurve.lwt, signpost
+  Findlibname: base
+  FindlibParent: signpost
+  NativeOpt: -w @f@p@u
+  ByteOpt:   -w @f@p@u
+
+Executable spkeygen
+  Path: src
+  MainIs: spkeygen.ml
+  Custom: true
+  CompiledObject: best
+  Install: true
+  BuildDepends: cmdliner, sodium, signpost
+
+Executable spaced
+  Path: src/ace
+  MainIs: spaced.ml
+  Custom: true
+  CompiledObject: best
+  Install: true
+  BuildDepends: cmdliner, signpost.ace
+
+Executable spbased
+  Path: src/base
+  MainIs: spbased.ml
+  Custom: true
+  CompiledObject: best
+  Install: true
+  BuildDepends: cmdliner, signpost.base
