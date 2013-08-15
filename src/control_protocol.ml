@@ -19,7 +19,7 @@ let auth_client keyf server_pk inside =
 
 let auth_server sk outside clear_proc unauth_proc auth_proc =
   let open Dnscurve_processor in
-  fallback clear_proc
+  fallback_dns clear_proc
     sk outside
-    (fallback unauth_proc
+    (fallback_curve unauth_proc
        sk outside auth_proc)

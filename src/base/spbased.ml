@@ -25,7 +25,7 @@ let serve sk pk resolv_ip zone =
   Crypto.(Based.serve
             (box_read_secret_key (Base16_of.string sk))
             (box_read_public_key (Base16_of.string pk))
-            (Ipv4.of_string resolv_ip)
+            resolv_ip
             (Dns.Name.string_to_domain_name zone))
 
 let default_cmd =

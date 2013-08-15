@@ -21,11 +21,13 @@ let domain = Arg.(required & pos 3 (some string) None & info []
                     ~doc:"your signpost")
 
 let serve sk pk server_pk domain =
-  Crypto.(Aced.serve
-            (box_read_secret_key (Base16_of.string sk))
-            (box_read_public_key (Base16_of.string pk))
-            (box_read_public_key (Base16_of.string server_pk))
-            (Dns.Name.string_to_domain_name domain))
+  Lwt_main.run begin
+    Crypto.(Aced.serve
+              (box_read_secret_key (Base16_of.string sk))
+              (box_read_public_key (Base16_of.string pk))
+              (box_read_public_key (Base16_of.string server_pk))
+              (Dns.Name.string_to_domain_name domain))
+  end
 
 let default_cmd =
   let doc = "start the local resolver daemon" in

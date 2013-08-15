@@ -1,21 +1,23 @@
 open Lwt
 open Dns
 module Crypto = Sodium.Make(Sodium.Serialize.String)
-module Ipv4 = Ipaddr.V4
+module IPv4 = Ipaddr.V4
 
-module type ZONAL = sig
+module type INTERP = sig
   module Key : sig
-    type store
     type role
     type token
+    type store
 
-    val store : unit -> store
-    val role : store -> string -> role
-    val delegate : role -> string -> role
-    val group : role list -> string -> role
-
-    val token : store -> string -> string -> token
+    val new_store : unit -> store
+    val role : string -> role
+    val token : role -> string -> Sodium.public Sodium.Box.key -> token
+    val store_token : store -> token -> store
+    val get_token : store -> Sodium.public Sodium.Box.key -> token option
+    val authenticate : role -> token -> bool
   end
+
+  type security = Clear | Encrypted of Sodium.public Sodium.Box.key option
 
   type ip
   type label
@@ -34,12 +36,12 @@ module type ZONAL = sig
   }
   type record
   type zone
+  type service = { zones : zone list; recursor : bool }
 
   val ip : string -> ip
   val l : string -> label
 
   val zone : soa -> record list -> zone
-  val soa_of_zone : zone -> soa
   val cond : cond -> record list -> record list -> record
 
   val domain : ?also:label list list -> ?rev:bool -> label list -> ip -> record
@@ -52,19 +54,28 @@ end
 
 module Dns_curve = struct
   module Key = struct
-    type store = unit
+    type curve_pk = Sodium.public Sodium.Box.key
+    module Store = Map.Make(struct
+      type t = curve_pk
+      let compare = Sodium.Box.compare_keys
+    end)
     type role = string
-    type token = string * string
+    type token = role * string * curve_pk
+    type store = token Store.t
 
-    let store () = ()
-    let role store name = name
-    let delegate role name = name
-    let group rl name = name
-
-    let token store name tok = (name,tok)
+    let new_store () = Store.empty
+    let role name = name
+    let token role name cred = (role, name, cred)
+    let store_token store ((_,_,key) as tok) = Store.add key tok store
+    let get_token store pk =
+      try Some Store.(find pk store) with Not_found -> None
+    let authenticate role (trole,_,_) = role = trole
   end
 
-  type ip = Ipv4.t
+  type security = Clear | Encrypted of Key.curve_pk option
+  let is_clear = function Clear -> true | Encrypted _ -> false
+
+  type ip = IPv4.t
   type label = string
   type cond = Secret | Identified of Key.role
   type soa = {
@@ -82,9 +93,10 @@ module Dns_curve = struct
   type record =
   | Mod of (soa -> Loader.db -> unit)
   | Cond of cond * record list * record list
-  type zone = { soa : soa; public : Loader.db; secret : Loader.db }
+  type zone = security -> Loader.db -> unit
+  type service = { zones : zone list; recursor : bool }
 
-  let ip = Ipv4.of_string_exn
+  let ip = IPv4.of_string_exn
   let l s = s
 
   let master_of_soa soa = (fst soa.master_ns)@soa.origin
@@ -100,9 +112,7 @@ module Dns_curve = struct
 
   let zone soa rl =
     let master = master_of_soa soa in
-    let public = Loader.new_db () in
-    let secret = Loader.new_db () in
-    let load is_secret db =
+    let load sec db =
       bind_soa soa soa.origin db;
       List.iter (fun addr -> Loader.add_a_rr addr soa.ttl master db)
         (snd soa.master_ns);
@@ -111,16 +121,13 @@ module Dns_curve = struct
       ) soa.other_ns;
       let rec eval = function
         | Mod dbfn -> dbfn soa db
-        | Cond (Secret,rl,_) when is_secret -> List.iter eval rl
-        | Cond (Secret,_,erl) when not is_secret -> List.iter eval erl
+        | Cond (Secret,rl,_) when not (is_clear sec) -> List.iter eval rl
+        | Cond (Secret,_,erl) when is_clear sec -> List.iter eval erl
         | Cond (_,_,_) -> ()
       in List.iter eval rl
     in
-    load false public;
-    load true  secret;
-    { soa; public; secret; }
+    load
 
-  let soa_of_zone { soa } = soa
   let cond c rl erl = Cond (c,rl,erl)
 
   let domain ?(also=[]) ?(rev=false) ll addr =
@@ -144,35 +151,32 @@ module Dns_curve = struct
   let is_identified role = Identified role
 end
 
-module Dns_curve_zonal : ZONAL = Dns_curve
+module Dns_curve_interp : INTERP = Dns_curve
 
-module type ZONE = functor(Z : ZONAL) -> sig
-  val zones : unit -> Z.zone list
+module type SIGNPOST = functor(I : INTERP) -> sig
+  val dns : I.security -> I.service
 end
 
-type t = {
+type zone_binding = {
   addr : string;
-  name : string list
+  name : string list;
 }
-module type DOMAIN = sig
-  val zones : t list
+type services = {
+  dns : Sodium.public Sodium.Box.key;
+}
+module type CONFIG = sig
+  val zone_bindings : zone_binding list
+  val services : services
 end
 
-module TestZone(Config : DOMAIN) : ZONE = functor (Zonal : ZONAL) -> struct
-  open Zonal
+module TestZone(Config : CONFIG) : SIGNPOST = functor (Interp : INTERP) -> struct
+  open Interp
 
-  let keystore   = Key.store ()
+  let dns_user = Key.role "DNS User"
+  let dns_tok = Key.token dns_user "DNS Tunnel" Config.services.dns
+  let keystore = Key.store_token (Key.new_store ()) dns_tok
 
-  let sovereign  = Key.role keystore "sovereign"
-  let root       = Key.delegate sovereign "root"
-  let home       = Key.delegate root "home"
-  let laptop     = Key.delegate root "laptop"
-  let me         = Key.delegate root "me"
-  let classified = Key.group [home; laptop; me] "classified"
-
-  let secret = Key.token keystore "password" "pseudosecret"
-
-  let zones () = List.map (fun {addr;name} ->
+  let zones = List.map (fun {addr;name} ->
     let self = ip addr in
     let origin = List.map l name in
 
@@ -190,41 +194,42 @@ module TestZone(Config : DOMAIN) : ZONE = functor (Zonal : ZONAL) -> struct
     } in
     zone soa [
       domain ~also:[[l "www"]] ~rev:true [] self;
-      dynamic home [l "home"];
-    (*any [L "icann"; L "dns"] self;*)
-      cond (is_secret ()) [
-        dynamic laptop [l "laptop"];
-        cond (is_identified classified) [
-          tokenstore [l "tokens"] [secret];
-        ] [];
-      ] [];
-    ]) Config.zones
+    ]) Config.zone_bindings
+
+  let dns = function
+    | Clear ->
+      { zones; recursor=false; }
+    | Encrypted (Some pk) ->
+      begin match Key.get_token keystore pk with
+      | None -> { zones; recursor=false; }
+      | Some tok ->
+        if Key.authenticate dns_user tok
+        then { zones; recursor=true; }
+        else { zones; recursor=false; }
+      end
+    | Encrypted None -> { zones; recursor=false; }
 end
 
 module type NS = sig end
 
-module Namespace(Zone : ZONE) : NS = struct
+module Namespace(Signpost : SIGNPOST) : NS = struct
 
 end
 
 type sockaddr = Lwt_unix.sockaddr
 
 module type DNS = sig
-  val process : Dns.Loader.db ->
+  val process : Dns.Loader.db -> recurse:bool ->
     src:sockaddr -> dst:sockaddr -> Packet.t -> Query.answer option Lwt.t
 
   module Processor : Dns_server.PROCESSOR
 end
 
-let nameserver_of_zone (pk,sk) (module Zone : ZONE) =
+let nameserver_of_zone (pk,sk) (module Signpost : SIGNPOST) =
   let module Nameserver = struct
-    module Z = Zone(Dns_curve)
+    module Z = Signpost(Dns_curve)
 
-    let zone = List.hd (Z.zones ())
-    let pub = zone.Dns_curve.public
-    let priv = zone.Dns_curve.secret
-
-    let process db ~src ~dst packet =
+    let process db ~recurse ~src ~dst packet =
       let open Packet in
       match packet.questions with
       | [] -> Log.questionless_query ~src ~dst packet; return None
@@ -237,28 +242,42 @@ let nameserver_of_zone (pk,sk) (module Zone : ZONE) =
       end
       | _::_::_ -> Log.questionful_query ~src ~dst packet; return None
 
+    let process_of_security sec =
+      let service = Z.dns sec in
+      let db = Loader.new_db () in
+      List.iter (fun zonef -> zonef sec db) service.Dns_curve.zones;
+      process db ~recurse:service.Dns_curve.recursor
+
     module Processor =
-      (val Dnscurve_processor.(
-        split_of_process sk (process pub) (process priv)
+      (val Control_protocol.(
+        auth_server sk Dns.Protocol.((module Server : SERVER))
+          Dns_server.((processor_of_process
+                         (process_of_security Dns_curve.Clear)
+                       :> (module PROCESSOR)))
+          Dns_server.((processor_of_process
+                         (process_of_security (Dns_curve.Encrypted None))
+                       :> (module PROCESSOR)))
+          (Dnscurve_processor.of_process (fun chan ->
+            (* TODO: memoize authenticated databases *)
+            process_of_security (Dns_curve.Encrypted (Some chan.Dnscurve.client_pk))
+           ))
        ))
   end in
   (module Nameserver : DNS)
 
 let dns_port = 53
 
-let keys = Crypto.box_keypair ()
+let mydns server_keys addr name client_pk = nameserver_of_zone server_keys
+  (module TestZone(struct
+    let zone_bindings = [ { addr; name }; ]
+    let services = { dns = client_pk }
+  end))
 
-let mydns = nameserver_of_zone keys (module TestZone(struct
-  let zones = [
-    { addr = "166.78.243.128"; name = ["domocracy"; "net"] };
-  ]
-end))
-
-let serve sk pk resolv_ip zone =
+let serve sk pk resolv_ip zone client_pk =
   Lwt_main.run begin
     let address = "0.0.0.0" in
     let port = dns_port in
-    let module MyDNS = (val mydns : DNS) in
+    let module MyDNS = (val mydns (pk,sk) resolv_ip zone client_pk : DNS) in
     let processor = (module MyDNS.Processor : Dns_server.PROCESSOR) in
     Dns_server.serve_with_processor ~address ~port ~processor
   end
