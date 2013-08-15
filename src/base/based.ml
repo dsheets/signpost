@@ -36,7 +36,7 @@ module type INTERP = sig
   }
   type record
   type zone
-  type service = { zones : zone list; recursor : bool }
+  type service = { zones : zone list; recursor : IPv4.t option }
 
   val ip : string -> ip
   val l : string -> label
@@ -94,7 +94,7 @@ module Dns_curve = struct
   | Mod of (soa -> Loader.db -> unit)
   | Cond of cond * record list * record list
   type zone = security -> Loader.db -> unit
-  type service = { zones : zone list; recursor : bool }
+  type service = { zones : zone list; recursor : IPv4.t option }
 
   let ip = IPv4.of_string_exn
   let l s = s
@@ -162,7 +162,7 @@ type zone_binding = {
   name : string list;
 }
 type services = {
-  dns : Sodium.public Sodium.Box.key;
+  dns : string * Sodium.public Sodium.Box.key;
 }
 module type CONFIG = sig
   val zone_bindings : zone_binding list
@@ -172,8 +172,10 @@ end
 module TestZone(Config : CONFIG) : SIGNPOST = functor (Interp : INTERP) -> struct
   open Interp
 
+  let dns_ip,dns_pk = Config.services.dns
+
   let dns_user = Key.role "DNS User"
-  let dns_tok = Key.token dns_user "DNS Tunnel" Config.services.dns
+  let dns_tok = Key.token dns_user "DNS Tunnel" dns_pk
   let keystore = Key.store_token (Key.new_store ()) dns_tok
 
   let zones = List.map (fun {addr;name} ->
@@ -198,16 +200,16 @@ module TestZone(Config : CONFIG) : SIGNPOST = functor (Interp : INTERP) -> struc
 
   let dns = function
     | Clear ->
-      { zones; recursor=false; }
+      { zones; recursor=None; }
     | Encrypted (Some pk) ->
       begin match Key.get_token keystore pk with
-      | None -> { zones; recursor=false; }
+      | None -> { zones; recursor=None; }
       | Some tok ->
         if Key.authenticate dns_user tok
-        then { zones; recursor=true; }
-        else { zones; recursor=false; }
+        then { zones; recursor=Some (IPv4.of_string_exn dns_ip); }
+        else { zones; recursor=None; }
       end
-    | Encrypted None -> { zones; recursor=false; }
+    | Encrypted None -> { zones; recursor=None; }
 end
 
 module type NS = sig end
@@ -219,34 +221,45 @@ end
 type sockaddr = Lwt_unix.sockaddr
 
 module type DNS = sig
-  val process : Dns.Loader.db -> recurse:bool ->
+  val process : Dns.Loader.db -> recursor:IPv4.t option ->
     src:sockaddr -> dst:sockaddr -> Packet.t -> Query.answer option Lwt.t
 
   module Processor : Dns_server.PROCESSOR
 end
 
+let dns_port = 53
+
 let nameserver_of_zone (pk,sk) (module Signpost : SIGNPOST) =
   let module Nameserver = struct
     module Z = Signpost(Dns_curve)
 
-    let process db ~recurse ~src ~dst packet =
+    let process db ~recursor ~src ~dst packet =
       let open Packet in
       match packet.questions with
       | [] -> Log.questionless_query ~src ~dst packet; return None
       | [q] -> begin
         try
           let answer = Query.(answer q.q_name q.q_type db.Loader.trie) in
-          return (Some answer)
+          match recursor, answer.Query.rcode with
+          | None, _ | _, Packet.NoError -> return (Some answer)
+          | Some recursor_ip, _ ->
+            Dns_resolver.create
+              ~client:(module Dns.Protocol.Client)
+              ~config:(`Static ([IPv4.to_string recursor_ip, dns_port],[])) ()
+            >>= fun resolver ->
+            Dns_resolver.send_pkt resolver packet
+            >>= fun packet ->
+            return (Some (Dns.Query.answer_of_response packet))
         with exn ->
           print_endline (Printexc.to_string exn); exit 1
       end
       | _::_::_ -> Log.questionful_query ~src ~dst packet; return None
 
     let process_of_security sec =
-      let service = Z.dns sec in
+      let { Dns_curve.zones; recursor } = Z.dns sec in
       let db = Loader.new_db () in
-      List.iter (fun zonef -> zonef sec db) service.Dns_curve.zones;
-      process db ~recurse:service.Dns_curve.recursor
+      List.iter (fun zonef -> zonef sec db) zones;
+      process db ~recursor
 
     module Processor =
       (val Control_protocol.(
@@ -265,12 +278,10 @@ let nameserver_of_zone (pk,sk) (module Signpost : SIGNPOST) =
   end in
   (module Nameserver : DNS)
 
-let dns_port = 53
-
 let mydns server_keys addr name client_pk = nameserver_of_zone server_keys
   (module TestZone(struct
     let zone_bindings = [ { addr; name }; ]
-    let services = { dns = client_pk }
+    let services = { dns = ("8.8.8.8", client_pk) }
   end))
 
 let serve sk pk resolv_ip zone client_pk =
