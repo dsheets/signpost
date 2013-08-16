@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 2c3458ca6de8d829325765690a7a80c9) *)
+(* DO NOT EDIT (digest: 2a3f063b479d7f6c8a07fece1f55bc86) *)
 module OASISGettext = struct
 (* # 21 "src/oasis/OASISGettext.ml" *)
 
@@ -547,6 +547,43 @@ let package_default =
           (["oasis_library_base_byte"; "ocaml"; "compile"; "byte"],
             [(OASISExpr.EBool true, S [A "-w"; A "@f@p@u"])]);
           (["oasis_library_base_native"; "ocaml"; "compile"; "native"],
+            [(OASISExpr.EBool true, S [A "-w"; A "@f@p@u"])]);
+          (["oasis_executable_spkeygen_byte"; "ocaml"; "link"; "byte"],
+            [(OASISExpr.EBool true, S [A "-w"; A "@f@p@u"])]);
+          (["oasis_executable_spkeygen_native"; "ocaml"; "link"; "native"],
+            [(OASISExpr.EBool true, S [A "-w"; A "@f@p@u"])]);
+          (["oasis_executable_spkeygen_byte"; "ocaml"; "ocamldep"; "byte"],
+            [(OASISExpr.EBool true, S [A "-w"; A "@f@p@u"])]);
+          (["oasis_executable_spkeygen_native"; "ocaml"; "ocamldep"; "native"
+           ],
+            [(OASISExpr.EBool true, S [A "-w"; A "@f@p@u"])]);
+          (["oasis_executable_spkeygen_byte"; "ocaml"; "compile"; "byte"],
+            [(OASISExpr.EBool true, S [A "-w"; A "@f@p@u"])]);
+          (["oasis_executable_spkeygen_native"; "ocaml"; "compile"; "native"],
+            [(OASISExpr.EBool true, S [A "-w"; A "@f@p@u"])]);
+          (["oasis_executable_spaced_byte"; "ocaml"; "link"; "byte"],
+            [(OASISExpr.EBool true, S [A "-w"; A "@f@p@u"])]);
+          (["oasis_executable_spaced_native"; "ocaml"; "link"; "native"],
+            [(OASISExpr.EBool true, S [A "-w"; A "@f@p@u"])]);
+          (["oasis_executable_spaced_byte"; "ocaml"; "ocamldep"; "byte"],
+            [(OASISExpr.EBool true, S [A "-w"; A "@f@p@u"])]);
+          (["oasis_executable_spaced_native"; "ocaml"; "ocamldep"; "native"],
+            [(OASISExpr.EBool true, S [A "-w"; A "@f@p@u"])]);
+          (["oasis_executable_spaced_byte"; "ocaml"; "compile"; "byte"],
+            [(OASISExpr.EBool true, S [A "-w"; A "@f@p@u"])]);
+          (["oasis_executable_spaced_native"; "ocaml"; "compile"; "native"],
+            [(OASISExpr.EBool true, S [A "-w"; A "@f@p@u"])]);
+          (["oasis_executable_spbased_byte"; "ocaml"; "link"; "byte"],
+            [(OASISExpr.EBool true, S [A "-w"; A "@f@p@u"])]);
+          (["oasis_executable_spbased_native"; "ocaml"; "link"; "native"],
+            [(OASISExpr.EBool true, S [A "-w"; A "@f@p@u"])]);
+          (["oasis_executable_spbased_byte"; "ocaml"; "ocamldep"; "byte"],
+            [(OASISExpr.EBool true, S [A "-w"; A "@f@p@u"])]);
+          (["oasis_executable_spbased_native"; "ocaml"; "ocamldep"; "native"],
+            [(OASISExpr.EBool true, S [A "-w"; A "@f@p@u"])]);
+          (["oasis_executable_spbased_byte"; "ocaml"; "compile"; "byte"],
+            [(OASISExpr.EBool true, S [A "-w"; A "@f@p@u"])]);
+          (["oasis_executable_spbased_native"; "ocaml"; "compile"; "native"],
             [(OASISExpr.EBool true, S [A "-w"; A "@f@p@u"])])
        ];
      includes = [("src/base", ["src"]); ("src/ace", ["src"])];
@@ -555,6 +592,6 @@ let package_default =
 
 let dispatch_default = MyOCamlbuildBase.dispatch_default package_default;;
 
-# 559 "myocamlbuild.ml"
+# 596 "myocamlbuild.ml"
 (* OASIS_STOP *)
 Ocamlbuild_plugin.dispatch dispatch_default;;

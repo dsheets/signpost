@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: b7363d38f5b48ea97d97601e9982b480)
+# DO NOT EDIT (digest: 6d2155c74e3c690e7d994b8b16d585cc)
 # Ignore VCS directories, you can use the same kind of rule outside 
 # OASIS_START/STOP if you want to exclude directories that contains 
 # useless stuff for the build process
@@ -32,6 +32,10 @@
 <src/base/base.{cma,cmxa}>: oasis_library_base_native
 <src/base/*.ml{,i}>: oasis_library_base_native
 # Executable spkeygen
+<src/spkeygen.{native,byte}>: oasis_executable_spkeygen_byte
+<src/*.ml{,i}>: oasis_executable_spkeygen_byte
+<src/spkeygen.{native,byte}>: oasis_executable_spkeygen_native
+<src/*.ml{,i}>: oasis_executable_spkeygen_native
 <src/spkeygen.{native,byte}>: use_signpost
 <src/spkeygen.{native,byte}>: pkg_cmdliner
 <src/spkeygen.{native,byte}>: pkg_sodium
@@ -42,6 +46,10 @@
 <src/*.ml{,i}>: pkg_dnscurve.lwt
 <src/spkeygen.{native,byte}>: custom
 # Executable spaced
+<src/ace/spaced.{native,byte}>: oasis_executable_spaced_byte
+<src/ace/*.ml{,i}>: oasis_executable_spaced_byte
+<src/ace/spaced.{native,byte}>: oasis_executable_spaced_native
+<src/ace/*.ml{,i}>: oasis_executable_spaced_native
 <src/ace/spaced.{native,byte}>: use_ace
 <src/ace/spaced.{native,byte}>: use_signpost
 <src/ace/spaced.{native,byte}>: pkg_cmdliner
@@ -60,6 +68,10 @@
 <src/ace/*.ml{,i}>: pkg_dnscurve
 <src/ace/spaced.{native,byte}>: custom
 # Executable spbased
+<src/base/spbased.{native,byte}>: oasis_executable_spbased_byte
+<src/base/*.ml{,i}>: oasis_executable_spbased_byte
+<src/base/spbased.{native,byte}>: oasis_executable_spbased_native
+<src/base/*.ml{,i}>: oasis_executable_spbased_native
 <src/base/spbased.{native,byte}>: use_base
 <src/base/spbased.{native,byte}>: use_signpost
 <src/base/spbased.{native,byte}>: pkg_cmdliner
