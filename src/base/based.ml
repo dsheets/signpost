@@ -272,7 +272,8 @@ let nameserver_of_zone (pk,sk) (module Signpost : SIGNPOST) =
                        :> (module PROCESSOR)))
           (Dnscurve_processor.of_process (fun chan ->
             (* TODO: memoize authenticated databases *)
-            process_of_security (Dns_curve.Encrypted (Some chan.Dnscurve.client_pk))
+            process_of_security
+              (Dns_curve.Encrypted (Some chan.Dnscurve.client_pk))
            ))
        ))
   end in

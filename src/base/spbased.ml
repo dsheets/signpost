@@ -21,12 +21,18 @@ let zone = Arg.(required & pos 3 (some string) None & info []
                   ~docv:"ZONE"
                   ~doc:"the SOA zone of this base")
 
-let serve sk pk resolv_ip zone =
+let client_pk = Arg.(required & pos 4 (some string) None & info []
+                       ~docv:"CLIENT_PUBLIC_KEY"
+                       ~doc:"crypto_box public key for DNS tunneling")
+
+let serve sk pk resolv_ip zone client_pk =
   Crypto.(Based.serve
             (box_read_secret_key (Base16_of.string sk))
             (box_read_public_key (Base16_of.string pk))
             resolv_ip
-            (Dns.Name.string_to_domain_name zone))
+            (Dns.Name.string_to_domain_name zone)
+            (box_read_public_key (Base16_of.string client_pk))
+  )
 
 let default_cmd =
   let doc = "start the tunnel egress daemon" in
@@ -38,7 +44,7 @@ let default_cmd =
     `S "BUGS";
     `P "Email bug reports to <mailto:sheets@alum.mit.edu>, or report them online at <https://github.com/dsheets/signpost/>."
   ] in
-  Term.(pure serve $ sk $ pk $ resolv_ip $ zone),
+  Term.(pure serve $ sk $ pk $ resolv_ip $ zone $ client_pk),
   Term.info "spbased" ~version ~doc ~man
 
 ;;
