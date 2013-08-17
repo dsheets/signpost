@@ -1,19 +1,13 @@
 open Dns.Protocol
 open Dnscurve
 
-let auth_client keyf server_pk inside =
-  let keyring, ident = keyf () in
-  let open Dns_resolver in
-  let module I = (val inside : CLIENT) in
+let auth_client keyring ident server_pk inside =
+  let open Dnscurve_resolver in
+  let module I = (val streamlined server_pk inside : DNSCURVECLIENT) in
   let module Client = struct
     include I
 
-    let marshal pkt =
-      List.rev_map (fun (ictxt,b) ->
-        let _chan, buf = encode_streamlined_query ?keyring ident server_pk b in
-        ictxt, buf
-      ) (I.marshal pkt)
-
+    let marshal = I.marshal keyring ident
   end in
   (module Client : CLIENT)
 

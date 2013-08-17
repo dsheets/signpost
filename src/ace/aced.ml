@@ -3,7 +3,6 @@ module Crypto = Sodium.Make(Sodium.Serialize.String)
 module IPv4 = Ipaddr.V4
 
 let fresh_keyf () = None, Crypto.box_keypair ()
-let our_keyf sk pk () = None, (pk,sk)
 
 let dns = Dns.Protocol.((module Client : CLIENT))
 
@@ -20,7 +19,7 @@ let serve sk pk server_pk domain =
   let client = Dnscurve_resolver.(
     between fresh_keyf (new_env ()) server_pk domain
       dns
-      (Control_protocol.auth_client (our_keyf sk pk) server_pk dns)
+      (Control_protocol.auth_client None (pk,sk) server_pk dns)
   ) in
 
   let resolver_service = ref (Dns_resolver.create ~client ~config ()) in
