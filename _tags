@@ -1,7 +1,7 @@
 # OASIS_START
-# DO NOT EDIT (digest: 6d2155c74e3c690e7d994b8b16d585cc)
-# Ignore VCS directories, you can use the same kind of rule outside 
-# OASIS_START/STOP if you want to exclude directories that contains 
+# DO NOT EDIT (digest: 37bf918958177f9478b6c153799f4a31)
+# Ignore VCS directories, you can use the same kind of rule outside
+# OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
 <**/.svn>: -traverse
 <**/.svn>: not_hygienic
