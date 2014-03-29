@@ -41,7 +41,7 @@ Executable spkeygen
   CompiledObject: best
   Install: true
   BuildDepends: cmdliner, sodium, signpost
-  NativeOpt: -w @f@p@u
+  NativeOpt: -w @f@p@u -ccopt "`pkg-config --libs libffi`"
   ByteOpt:   -w @f@p@u
 
 Executable spaced
@@ -51,7 +51,7 @@ Executable spaced
   CompiledObject: best
   Install: true
   BuildDepends: cmdliner, signpost.ace
-  NativeOpt: -w @f@p@u
+  NativeOpt: -w @f@p@u -ccopt "`pkg-config --libs libffi`"
   ByteOpt:   -w @f@p@u
 
 Executable spbased
@@ -61,5 +61,5 @@ Executable spbased
   CompiledObject: best
   Install: true
   BuildDepends: cmdliner, signpost.base
-  NativeOpt: -w @f@p@u
+  NativeOpt: -w @f@p@u -ccopt "`pkg-config --libs libffi`"
   ByteOpt:   -w @f@p@u
