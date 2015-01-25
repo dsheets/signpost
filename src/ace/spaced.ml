@@ -1,4 +1,5 @@
 open Cmdliner
+module Base16_of = Base16.To_string
 
 let version = Version.string
 
@@ -21,9 +22,9 @@ let domain = Arg.(required & pos 3 (some string) None & info []
 let serve sk pk server_pk domain =
   Lwt_main.run begin
     Sodium.Box.(Aced.serve
-              (Bytes.to_secret_key sk)
-              (Bytes.to_public_key pk)
-              (Bytes.to_public_key server_pk)
+              (Bytes.to_secret_key (Base16_of.string sk))
+              (Bytes.to_public_key (Base16_of.string pk))
+              (Bytes.to_public_key (Base16_of.string server_pk))
               (Dns.Name.string_to_domain_name domain))
   end
 
