@@ -1,7 +1,5 @@
 open Lwt
 open Dns
-module Crypto = Sodium.Make(Sodium.Serialize.String)
-module IPv4 = Ipaddr.V4
 
 module type INTERP = sig
   module Key : sig
@@ -36,7 +34,7 @@ module type INTERP = sig
   }
   type record
   type zone
-  type service = { zones : zone list; recursor : IPv4.t option }
+  type service = { zones : zone list; recursor : Ipaddr.t option }
 
   val ip : string -> ip
   val l : string -> label
@@ -57,7 +55,7 @@ module Dns_curve = struct
     type curve_pk = Sodium.public Sodium.Box.key
     module Store = Map.Make(struct
       type t = curve_pk
-      let compare = Sodium.Box.compare_keys
+      let compare = Sodium.Box.compare_public_keys
     end)
     type role = string
     type token = role * string * curve_pk
@@ -75,7 +73,7 @@ module Dns_curve = struct
   type security = Clear | Encrypted of Key.curve_pk option
   let is_clear = function Clear -> true | Encrypted _ -> false
 
-  type ip = IPv4.t
+  type ip = Ipaddr.V4.t
   type label = string
   type cond = Secret | Identified of Key.role
   type soa = {
@@ -94,9 +92,9 @@ module Dns_curve = struct
   | Mod of (soa -> Loader.db -> unit)
   | Cond of cond * record list * record list
   type zone = security -> Loader.db -> unit
-  type service = { zones : zone list; recursor : IPv4.t option }
+  type service = { zones : zone list; recursor : Ipaddr.t option }
 
-  let ip = IPv4.of_string_exn
+  let ip = Ipaddr.V4.of_string_exn
   let l s = s
 
   let master_of_soa soa = (fst soa.master_ns)@soa.origin
@@ -206,7 +204,7 @@ module TestZone(Config : CONFIG) : SIGNPOST = functor (Interp : INTERP) -> struc
       | None -> { zones; recursor=None; }
       | Some tok ->
         if Key.authenticate dns_user tok
-        then { zones; recursor=Some (IPv4.of_string_exn dns_ip); }
+        then { zones; recursor=Some (Ipaddr.of_string_exn dns_ip); }
         else { zones; recursor=None; }
       end
     | Encrypted None -> { zones; recursor=None; }
@@ -221,7 +219,7 @@ end
 type sockaddr = Lwt_unix.sockaddr
 
 module type DNS = sig
-  val process : Dns.Loader.db -> recursor:IPv4.t option ->
+  val process : Dns.Loader.db -> recursor:Ipaddr.t option ->
     src:sockaddr -> dst:sockaddr -> Packet.t -> Query.answer option Lwt.t
 
   module Processor : Dns_server.PROCESSOR
@@ -243,11 +241,11 @@ let nameserver_of_zone (pk,sk) (module Signpost : SIGNPOST) =
           match recursor, answer.Query.rcode with
           | None, _ | _, Packet.NoError -> return (Some answer)
           | Some recursor_ip, _ ->
-            Dns_resolver.create
+            Dns_resolver_unix.create
               ~client:(module Dns.Protocol.Client)
-              ~config:(`Static ([IPv4.to_string recursor_ip, dns_port],[])) ()
+              ~config:(`Static ([recursor_ip, dns_port],[])) ()
             >>= fun resolver ->
-            Dns_resolver.send_pkt resolver packet
+            Dns_resolver_unix.resolve resolver q.q_class q.q_type q.q_name 
             >>= fun packet ->
             return (Some (Dns.Query.answer_of_response packet))
         with exn ->
@@ -291,5 +289,5 @@ let serve sk pk resolv_ip zone client_pk =
     let port = dns_port in
     let module MyDNS = (val mydns (pk,sk) resolv_ip zone client_pk : DNS) in
     let processor = (module MyDNS.Processor : Dns_server.PROCESSOR) in
-    Dns_server.serve_with_processor ~address ~port ~processor
+    Dns_server_unix.serve_with_processor ~address ~port ~processor
   end

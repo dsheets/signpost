@@ -7,7 +7,7 @@ let auth_client keyring ident server_pk inside =
   let module Client = struct
     include I
 
-    let marshal = I.marshal keyring ident
+    let marshal ?alloc = I.marshal keyring ident
   end in
   (module Client : CLIENT)
 
