@@ -1,13 +1,14 @@
 open Cmdliner
-module Crypto = Sodium.Make(Sodium.Serialize.String)
 module Base16_of = Base16.To_string
 
 let version = Version.string
 
 let keygen () =
-  let (pk,sk) = Crypto.box_keypair () in
-  Printf.printf "Public key: %s\n" (Base16_of.t (Crypto.box_write_key pk));
-  Printf.printf "Secret key: %s\n" (Base16_of.t (Crypto.box_write_key sk));
+  let (sk,pk) = Sodium.Box.random_keypair () in
+  let pk_s = (Base16_of.t (Sodium.Box.Bytes.of_public_key pk)) in
+  let sk_s = (Base16_of.t (Sodium.Box.Bytes.of_secret_key sk)) in
+  Printf.printf "Public key: %s\n" pk_s;
+  Printf.printf "Secret key: %s\n" sk_s;
   ()
 
 let default_cmd =
