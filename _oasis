@@ -10,8 +10,8 @@ BuildTools:  ocamlbuild
 Library signpost
   Path: src
   Modules: Control_protocol
-  InternalModules: Base16, Version
-  BuildDepends: dnscurve.lwt
+  InternalModules: Version
+  BuildDepends: dnscurve.lwt, hex
   Findlibname: signpost
   NativeOpt: -w @f@p@u
   ByteOpt:   -w @f@p@u
