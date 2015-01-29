@@ -1,8 +1,9 @@
 # OASIS_START
-# DO NOT EDIT (digest: 37bf918958177f9478b6c153799f4a31)
+# DO NOT EDIT (digest: f57bda72b2cac7c26cf90ac808b66269)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
+true: annot, bin_annot
 <**/.svn>: -traverse
 <**/.svn>: not_hygienic
 ".bzr": -traverse
@@ -16,75 +17,81 @@
 # Library signpost
 "src/signpost.cmxs": use_signpost
 <src/signpost.{cma,cmxa}>: oasis_library_signpost_byte
-<src/*.ml{,i}>: oasis_library_signpost_byte
+<src/*.ml{,i,y}>: oasis_library_signpost_byte
 <src/signpost.{cma,cmxa}>: oasis_library_signpost_native
-<src/*.ml{,i}>: oasis_library_signpost_native
+<src/*.ml{,i,y}>: oasis_library_signpost_native
 # Library ace
 "src/ace/ace.cmxs": use_ace
 <src/ace/ace.{cma,cmxa}>: oasis_library_ace_byte
-<src/ace/*.ml{,i}>: oasis_library_ace_byte
+<src/ace/*.ml{,i,y}>: oasis_library_ace_byte
 <src/ace/ace.{cma,cmxa}>: oasis_library_ace_native
-<src/ace/*.ml{,i}>: oasis_library_ace_native
+<src/ace/*.ml{,i,y}>: oasis_library_ace_native
 # Library base
 "src/base/base.cmxs": use_base
 <src/base/base.{cma,cmxa}>: oasis_library_base_byte
-<src/base/*.ml{,i}>: oasis_library_base_byte
+<src/base/*.ml{,i,y}>: oasis_library_base_byte
 <src/base/base.{cma,cmxa}>: oasis_library_base_native
-<src/base/*.ml{,i}>: oasis_library_base_native
+<src/base/*.ml{,i,y}>: oasis_library_base_native
 # Executable spkeygen
 <src/spkeygen.{native,byte}>: oasis_executable_spkeygen_byte
-<src/*.ml{,i}>: oasis_executable_spkeygen_byte
+<src/*.ml{,i,y}>: oasis_executable_spkeygen_byte
 <src/spkeygen.{native,byte}>: oasis_executable_spkeygen_native
-<src/*.ml{,i}>: oasis_executable_spkeygen_native
-<src/spkeygen.{native,byte}>: use_signpost
+<src/*.ml{,i,y}>: oasis_executable_spkeygen_native
 <src/spkeygen.{native,byte}>: pkg_cmdliner
-<src/spkeygen.{native,byte}>: pkg_sodium
 <src/spkeygen.{native,byte}>: pkg_dnscurve.lwt
-<src/*.ml{,i}>: use_signpost
-<src/*.ml{,i}>: pkg_cmdliner
-<src/*.ml{,i}>: pkg_sodium
-<src/*.ml{,i}>: pkg_dnscurve.lwt
+<src/spkeygen.{native,byte}>: pkg_hex
+<src/spkeygen.{native,byte}>: pkg_sodium
+<src/spkeygen.{native,byte}>: use_signpost
+<src/*.ml{,i,y}>: pkg_cmdliner
+<src/*.ml{,i,y}>: pkg_dnscurve.lwt
+<src/*.ml{,i,y}>: pkg_hex
+<src/*.ml{,i,y}>: pkg_sodium
+<src/*.ml{,i,y}>: use_signpost
 <src/spkeygen.{native,byte}>: custom
 # Executable spaced
 <src/ace/spaced.{native,byte}>: oasis_executable_spaced_byte
-<src/ace/*.ml{,i}>: oasis_executable_spaced_byte
+<src/ace/*.ml{,i,y}>: oasis_executable_spaced_byte
 <src/ace/spaced.{native,byte}>: oasis_executable_spaced_native
-<src/ace/*.ml{,i}>: oasis_executable_spaced_native
-<src/ace/spaced.{native,byte}>: use_ace
-<src/ace/spaced.{native,byte}>: use_signpost
+<src/ace/*.ml{,i,y}>: oasis_executable_spaced_native
 <src/ace/spaced.{native,byte}>: pkg_cmdliner
-<src/ace/spaced.{native,byte}>: pkg_sodium
-<src/ace/spaced.{native,byte}>: pkg_lwt.unix
-<src/ace/spaced.{native,byte}>: pkg_dnscurve.lwt
 <src/ace/spaced.{native,byte}>: pkg_dns
 <src/ace/spaced.{native,byte}>: pkg_dnscurve
-<src/ace/*.ml{,i}>: use_ace
-<src/ace/*.ml{,i}>: use_signpost
-<src/ace/*.ml{,i}>: pkg_cmdliner
-<src/ace/*.ml{,i}>: pkg_sodium
-<src/ace/*.ml{,i}>: pkg_lwt.unix
-<src/ace/*.ml{,i}>: pkg_dnscurve.lwt
-<src/ace/*.ml{,i}>: pkg_dns
-<src/ace/*.ml{,i}>: pkg_dnscurve
+<src/ace/spaced.{native,byte}>: pkg_dnscurve.lwt
+<src/ace/spaced.{native,byte}>: pkg_hex
+<src/ace/spaced.{native,byte}>: pkg_lwt.unix
+<src/ace/spaced.{native,byte}>: pkg_sodium
+<src/ace/spaced.{native,byte}>: use_ace
+<src/ace/spaced.{native,byte}>: use_signpost
+<src/ace/*.ml{,i,y}>: pkg_cmdliner
+<src/ace/*.ml{,i,y}>: pkg_dns
+<src/ace/*.ml{,i,y}>: pkg_dnscurve
+<src/ace/*.ml{,i,y}>: pkg_dnscurve.lwt
+<src/ace/*.ml{,i,y}>: pkg_hex
+<src/ace/*.ml{,i,y}>: pkg_lwt.unix
+<src/ace/*.ml{,i,y}>: pkg_sodium
+<src/ace/*.ml{,i,y}>: use_ace
+<src/ace/*.ml{,i,y}>: use_signpost
 <src/ace/spaced.{native,byte}>: custom
 # Executable spbased
 <src/base/spbased.{native,byte}>: oasis_executable_spbased_byte
-<src/base/*.ml{,i}>: oasis_executable_spbased_byte
+<src/base/*.ml{,i,y}>: oasis_executable_spbased_byte
 <src/base/spbased.{native,byte}>: oasis_executable_spbased_native
-<src/base/*.ml{,i}>: oasis_executable_spbased_native
-<src/base/spbased.{native,byte}>: use_base
-<src/base/spbased.{native,byte}>: use_signpost
+<src/base/*.ml{,i,y}>: oasis_executable_spbased_native
 <src/base/spbased.{native,byte}>: pkg_cmdliner
-<src/base/spbased.{native,byte}>: pkg_sodium
-<src/base/spbased.{native,byte}>: pkg_lwt.unix
 <src/base/spbased.{native,byte}>: pkg_dns.lwt
 <src/base/spbased.{native,byte}>: pkg_dnscurve.lwt
-<src/base/*.ml{,i}>: use_base
-<src/base/*.ml{,i}>: use_signpost
-<src/base/*.ml{,i}>: pkg_cmdliner
-<src/base/*.ml{,i}>: pkg_sodium
-<src/base/*.ml{,i}>: pkg_lwt.unix
-<src/base/*.ml{,i}>: pkg_dns.lwt
-<src/base/*.ml{,i}>: pkg_dnscurve.lwt
+<src/base/spbased.{native,byte}>: pkg_hex
+<src/base/spbased.{native,byte}>: pkg_lwt.unix
+<src/base/spbased.{native,byte}>: pkg_sodium
+<src/base/spbased.{native,byte}>: use_base
+<src/base/spbased.{native,byte}>: use_signpost
+<src/base/*.ml{,i,y}>: pkg_cmdliner
+<src/base/*.ml{,i,y}>: pkg_dns.lwt
+<src/base/*.ml{,i,y}>: pkg_dnscurve.lwt
+<src/base/*.ml{,i,y}>: pkg_hex
+<src/base/*.ml{,i,y}>: pkg_lwt.unix
+<src/base/*.ml{,i,y}>: pkg_sodium
+<src/base/*.ml{,i,y}>: use_base
+<src/base/*.ml{,i,y}>: use_signpost
 <src/base/spbased.{native,byte}>: custom
 # OASIS_STOP

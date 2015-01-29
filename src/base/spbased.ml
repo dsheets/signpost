@@ -1,5 +1,4 @@
 open Cmdliner
-module Base16_of = Base16.To_string
 module Ipv4 = Ipaddr.V4
 
 let version = Version.string
@@ -26,11 +25,11 @@ let client_pk = Arg.(required & pos 4 (some string) None & info []
 
 let serve sk pk resolv_ip zone client_pk =
   Sodium.Box.(Based.serve
-                (Bytes.to_secret_key (Base16_of.string sk))
-                (Bytes.to_public_key (Base16_of.string pk))
+                (Bytes.to_secret_key (Hex.to_string (`Hex sk)))
+                (Bytes.to_public_key (Hex.to_string (`Hex pk)))
                 resolv_ip
                 (Dns.Name.string_to_domain_name zone)
-                (Bytes.to_public_key (Base16_of.string client_pk))
+                (Bytes.to_public_key (Hex.to_string (`Hex client_pk)))
   )
 
 let default_cmd =

@@ -1,8 +1,8 @@
 # OASIS_START
-# DO NOT EDIT (digest: c3cf70ee26c63749aa298345260e52c8)
+# DO NOT EDIT (digest: aa20257ab0b5d656176847fcefbbc3a9)
 version = "0.0.1"
 description = "personal namespace system"
-requires = "dnscurve.lwt"
+requires = "dnscurve.lwt hex"
 archive(byte) = "signpost.cma"
 archive(byte, plugin) = "signpost.cma"
 archive(native) = "signpost.cmxa"

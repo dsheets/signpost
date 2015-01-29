@@ -1,12 +1,11 @@
 open Cmdliner
-module Base16_of = Base16.To_string
 
 let version = Version.string
 
 let keygen () =
   let (sk,pk) = Sodium.Box.random_keypair () in
-  let pk_s = Base16_of.t (Sodium.Box.Bytes.of_public_key pk) in
-  let sk_s = Base16_of.t (Sodium.Box.Bytes.of_secret_key sk) in
+  let (`Hex pk_s) = Hex.of_string (Sodium.Box.Bytes.of_public_key pk) in
+  let (`Hex sk_s) = Hex.of_string (Sodium.Box.Bytes.of_secret_key sk) in
   Printf.printf "Public key: %s\n" pk_s;
   Printf.printf "Secret key: %s\n" sk_s;
   ()
